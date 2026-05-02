@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
-import { Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, AlertTriangle, TrendingUp, AlertCircle, DollarSign } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
@@ -75,18 +75,23 @@ const Dashboard = () => {
     return acc;
   }, {});
 
+  const getCategoryColor = (category) => {
+    const colors = {
+      food: 'rgba(245, 158, 11, 0.8)',
+      transport: 'rgba(16, 185, 129, 0.8)',
+      utilities: 'rgba(56, 189, 248, 0.8)',
+      entertainment: 'rgba(99, 102, 241, 0.8)',
+      shopping: 'rgba(168, 85, 247, 0.8)',
+      other: 'rgba(148, 163, 184, 0.8)'
+    };
+    return colors[category] || colors.other;
+  };
+
   const doughnutData = {
-    labels: Object.keys(categoryTotals),
+    labels: Object.keys(categoryTotals).map(c => c.charAt(0).toUpperCase() + c.slice(1)),
     datasets: [{
       data: Object.values(categoryTotals),
-      backgroundColor: [
-        'rgba(99, 102, 241, 0.8)',
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(239, 68, 68, 0.8)',
-        'rgba(168, 85, 247, 0.8)',
-        'rgba(148, 163, 184, 0.8)'
-      ],
+      backgroundColor: Object.keys(categoryTotals).map(getCategoryColor),
       borderWidth: 0
     }]
   };
@@ -94,14 +99,17 @@ const Dashboard = () => {
   const barData = {
     labels: expenses.slice(0, 7).map(e => new Date(e.date).toLocaleDateString()),
     datasets: [{
-      label: 'Recent Expenses',
+      label: 'Amount ($)',
       data: expenses.slice(0, 7).map(e => e.amount),
-      backgroundColor: 'rgba(99, 102, 241, 0.8)',
+      backgroundColor: expenses.slice(0, 7).map(e => getCategoryColor(e.category)),
       borderRadius: 6
     }]
   };
 
   const totalSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+  const highestTx = expenses.length > 0 ? Math.max(...expenses.map(e => e.amount)) : 0;
+  const avgSpend = expenses.length > 0 ? totalSpent / expenses.length : 0;
+  const anomalyCount = expenses.filter(e => e.isAnomaly).length;
 
   return (
     <div className="dashboard-container">
@@ -160,14 +168,30 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="glass-container" style={{ padding: '0' }}>
-        <div style={{ padding: '2rem' }}>
-          <h2 style={{ marginBottom: '2rem' }}>Analytics Overview</h2>
+      <div className="glass-container" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '2rem', flex: 1 }}>
+          <h2 style={{ marginBottom: '1.5rem' }}>Analytics Overview</h2>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ background: 'rgba(15,23,42,0.4)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={14}/> Highest Transaction</p>
+              <h3 style={{ marginTop: '0.5rem', color: '#f8fafc' }}>${highestTx.toFixed(2)}</h3>
+            </div>
+            <div style={{ background: 'rgba(15,23,42,0.4)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><DollarSign size={14}/> Average Spend</p>
+              <h3 style={{ marginTop: '0.5rem', color: '#f8fafc' }}>${avgSpend.toFixed(2)}</h3>
+            </div>
+            <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <p style={{ color: 'var(--danger)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><AlertCircle size={14}/> Anomalies Detected</p>
+              <h3 style={{ marginTop: '0.5rem', color: 'var(--danger)' }}>{anomalyCount}</h3>
+            </div>
+          </div>
+
           <div className="charts-grid">
             <div className="chart-card">
               <h4 style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>Expenses by Category</h4>
               <div className="chart-wrapper">
-                <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f8fafc' } } } }} />
+                <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f8fafc', padding: 20 } } } }} />
               </div>
             </div>
             <div className="chart-card">
