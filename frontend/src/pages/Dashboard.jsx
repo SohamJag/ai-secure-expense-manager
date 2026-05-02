@@ -23,10 +23,10 @@ const Dashboard = () => {
         const token = localStorage.getItem('token');
         const config = { headers: { 'x-auth-token': token } };
         
-        const userRes = await axios.get('http://localhost:5000/api/auth/user', config);
+        const userRes = await axios.get('http://localhost:5001/api/auth/user', config);
         setUser(userRes.data);
         
-        const expenseRes = await axios.get('http://localhost:5000/api/expenses', config);
+        const expenseRes = await axios.get('http://localhost:5001/api/expenses', config);
         setExpenses(expenseRes.data);
       } catch (err) {
         console.error(err);
@@ -49,7 +49,7 @@ const Dashboard = () => {
         category: formData.category
       };
       
-      const res = await axios.post('http://localhost:5000/api/expenses', newExpense, config);
+      const res = await axios.post('http://localhost:5001/api/expenses', newExpense, config);
       setExpenses([res.data, ...expenses]);
       setFormData({ title: '', amount: '', category: 'food' });
     } catch (err) {
@@ -62,7 +62,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const config = { headers: { 'x-auth-token': token } };
       
-      await axios.delete(`http://localhost:5000/api/expenses/${id}`, config);
+      await axios.delete(`http://localhost:5001/api/expenses/${id}`, config);
       setExpenses(expenses.filter(expense => expense._id !== id));
     } catch (err) {
       console.error(err);
