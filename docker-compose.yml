@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: expense_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: expense_backend
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGODB_URI=mongodb://mongodb:27017/ai_expense_manager
+      - JWT_SECRET=super_secret_jwt_key_here
+    depends_on:
+      - mongodb
+
+  ml_api:
+    build: ./ml_api
+    container_name: expense_ml_api
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    container_name: expense_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_data:
